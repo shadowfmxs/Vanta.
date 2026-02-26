@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VANTA — Creative Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --black: #080808;
+    --off-black: #0f0f0f;
+    --surface: #161616;
+    --border: #242424;
+    --white: #f5f0e8;
+    --cream: #e8dfc8;
+    --accent: #c8a96e;
+    --accent-dim: #8a6f3f;
+    --text-muted: #5a5550;
+    --text-mid: #9a9088;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease;
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1px solid rgba(200,169,110,0.4);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: all 0.18s ease;
+  }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 9000;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 60px;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.4s, background 0.4s;
+  }
+  nav.scrolled {
+    background: rgba(8,8,8,0.92);
+    backdrop-filter: blur(12px);
+    border-color: var(--border);
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--white);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-links {
+    display: flex; gap: 48px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--black);
+    background: var(--accent);
+    padding: 10px 24px;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .nav-cta:hover { background: var(--cream); transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 0 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 40%, rgba(200,169,110,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 80% at 10% 80%, rgba(200,169,110,0.04) 0%, transparent 50%);
+  }
+  .hero-line-deco {
+    position: absolute;
+    right: 60px; top: 30%;
+    width: 1px; height: 260px;
+    background: linear-gradient(to bottom, transparent, var(--border), transparent);
+    opacity: 0.6;
+  }
+  .hero-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(5rem, 10vw, 11rem);
+    font-weight: 900;
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    max-width: 900px;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.4s forwards;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .hero-footer {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-top: 64px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.8s forwards;
+  }
+  .hero-desc {
+    font-size: 1.2rem;
+    line-height: 1.7;
+    color: var(--text-mid);
+    max-width: 380px;
+  }
+  .hero-desc strong { color: var(--white); font-weight: 400; }
+  .hero-cta {
+    display: flex; align-items: center; gap: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--white);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 6px;
+    transition: gap 0.3s;
+  }
+  .hero-cta:hover { gap: 28px; }
+  .hero-cta .arrow { color: var(--accent); font-size: 1.1rem; }
+
+  /* MARQUEE */
+  .marquee-wrap {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 0;
+    overflow: hidden;
+    background: var(--off-black);
+  }
+  .marquee-track {
+    display: flex; gap: 64px;
+    width: max-content;
+    animation: marquee 28s linear infinite;
+  }
+  .marquee-item {
+    display: flex; align-items: center; gap: 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .marquee-dot { width: 4px; height: 4px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
+
+  /* WORK */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 56px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1; max-width: 80px;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .work { padding: 120px 60px; }
+  .work-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 80px;
+  }
+  .work-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 5vw, 5rem);
+    font-weight: 700;
+    line-height: 1;
+    max-width: 560px;
+  }
+  .work-title em { font-style: italic; color: var(--accent); }
+  .work-link {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .work-link:hover { color: var(--accent); border-color: var(--accent); }
+
+  .work-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 2px;
+  }
+  .work-card {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
+    aspect-ratio: unset;
+    cursor: none;
+  }
+  .work-card:first-child {
+    grid-row: span 2;
+    min-height: 640px;
+  }
+  .work-card:not(:first-child) { min-height: 300px; }
+
+  .work-card-bg {
+    position: absolute; inset: 0;
+    transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .work-card:hover .work-card-bg { transform: scale(1.05); }
+  .bg-1 { background: linear-gradient(135deg, #1a1208 0%, #2a1e0a 40%, #1a1208 100%); }
+  .bg-2 { background: linear-gradient(135deg, #0c1218 0%, #102030 100%); }
+  .bg-3 { background: linear-gradient(135deg, #120c18 0%, #1e1028 100%); }
+
+  .card-geo {
+    position: absolute;
+    border: 1px solid rgba(200,169,110,0.15);
+    border-radius: 50%;
+  }
+  .card-geo-1 { width: 300px; height: 300px; top: -80px; right: -80px; }
+  .card-geo-2 { width: 180px; height: 180px; top: 20px; right: -30px; }
+  .card-geo-alt { width: 200px; height: 200px; bottom: -60px; left: 50%; transform: translateX(-50%); border-radius: 0; transform: translateX(-50%) rotate(45deg); }
+
+  .work-card-content {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 40px;
+    background: linear-gradient(to top, rgba(8,8,8,0.9) 0%, transparent 60%);
+  }
+  .work-card-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .work-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .work-card:first-child .work-card-title { font-size: 2.8rem; }
+  .work-card-sub {
+    font-size: 1rem;
+    color: var(--text-mid);
+    line-height: 1.5;
+  }
+
+  /* ABOUT */
+  .about {
+    padding: 120px 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 120px;
+    align-items: center;
+    border-top: 1px solid var(--border);
+  }
+  .about-visual {
+    position: relative;
+    height: 560px;
+  }
+  .about-img-frame {
+    position: absolute;
+    inset: 0;
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .about-img-inner {
+    width: 100%; height: 100%;
+    background:
+      linear-gradient(160deg, #1a1208 0%, #0f0c06 50%, #1a1a1a 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .about-monogram {
+    font-family: 'Playfair Display', serif;
+    font-size: 18rem;
+    font-weight: 900;
+    color: rgba(200,169,110,0.06);
+    line-height: 1;
+    user-select: none;
+  }
+  .about-tag-float {
+    position: absolute;
+    right: -32px; bottom: 60px;
+    background: var(--accent);
+    color: var(--black);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 14px 20px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+  .about-line-deco {
+    position: absolute;
+    left: -20px; top: 60px;
+    width: 1px; height: 120px;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+  .about-content {}
+  .about-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 3.5vw, 3.6rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 32px;
+  }
+  .about-title em { font-style: italic; color: var(--accent); }
+  .about-body {
+    font-size: 1.15rem;
+    line-height: 1.85;
+    color: var(--text-mid);
+    margin-bottom: 20px;
+  }
+  .about-body strong { color: var(--white); font-weight: 400; }
+  .stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 32px; margin-top: 56px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+  }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* SERVICES */
+  .services {
+    padding: 120px 60px;
+    border-top: 1px solid var(--border);
+  }
+  .services-header {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 60px; margin-bottom: 80px;
+    align-items: end;
+  }
+  .services-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 4vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.05;
+  }
+  .services-title em { font-style: italic; color: var(--accent); }
+  .services-intro {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text-mid);
+  }
+  .services-list {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+  .service-card {
+    background: var(--surface);
+    padding: 48px 40px;
+    border: 1px solid transparent;
+    transition: border-color 0.3s, background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .service-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+  .service-card:hover::before { transform: scaleX(1); }
+  .service-card:hover {
+    background: #1a1a1a;
+    border-color: var(--border);
+  }
+  .service-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 40px;
+  }
+  .service-icon {
+    font-size: 2rem;
+    margin-bottom: 24px;
+    opacity: 0.7;
+  }
+  .service-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .service-desc {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-mid);
+  }
+
+  /* CTA SECTION */
+  .cta-section {
+    padding: 160px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 50% at center, rgba(200,169,110,0.07) 0%, transparent 70%);
+  }
+  .cta-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 32px;
+  }
+  .cta-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3.5rem, 8vw, 8rem);
+    font-weight: 900;
+    line-height: 0.95;
+    max-width: 800px;
+    margin: 0 auto 56px;
+  }
+  .cta-title em { font-style: italic; color: var(--accent); }
+  .cta-btn {
+    display: inline-flex; align-items: center; gap: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--black);
+    background: var(--accent);
+    padding: 20px 48px;
+    text-decoration: none;
+    transition: background 0.25s, gap 0.3s, transform 0.2s;
+  }
+  .cta-btn:hover { background: var(--cream); gap: 28px; transform: translateY(-2px); }
+  .cta-btn .arrow { font-size: 1.1rem; }
+
+  /* FOOTER */
+  footer {
+    padding: 60px 60px 40px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+  }
+  .footer-brand .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    margin-bottom: 16px;
+  }
+  .footer-brand .logo span { color: var(--accent); }
+  .footer-brand p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+  .footer-col h4 {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+  .footer-col ul { list-style: none; }
+  .footer-col li { margin-bottom: 12px; }
+  .footer-col a {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-col a:hover { color: var(--white); }
+  .footer-bottom {
+    padding: 24px 60px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-copy {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">VAN<span>T</span>A</a>
+  <ul class="nav-links">
+    <li><a href="#work">Work</a></li>
+    <li><a href="#about">Studio</a></li>
+    <li><a href="#services">Services</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Start a Project</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-line-deco"></div>
+  <div class="hero-num">— Est. 2019 &nbsp;&nbsp; New York, NY</div>
+  <h1 class="hero-title">We craft<br><em>bold</em><br>experiences.</h1>
+  <div class="hero-footer">
+    <p class="hero-desc">
+      A boutique creative studio specializing in <strong>brand identity</strong>, <strong>digital experiences</strong>, and <strong>strategic design</strong> for ambitious companies.
+    </p>
+    <a href="#work" class="hero-cta">
+      View Selected Work <span class="arrow">→</span>
+    </a>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="marquee-item"><span class="marquee-dot"></span>Brand Identity</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Web Design</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Motion Design</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Strategy</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Art Direction</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>UI / UX</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Photography</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Brand Identity</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Web Design</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Motion Design</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Strategy</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Art Direction</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>UI / UX</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Photography</div>
+  </div>
+</div>
+
+<!-- WORK -->
+<section class="work" id="work">
+  <div class="section-label reveal">Selected Work</div>
+  <div class="work-header reveal">
+    <h2 class="work-title">Recent <em>projects</em><br>& collaborations</h2>
+    <a href="#" class="work-link">View all work →</a>
+  </div>
+  <div class="work-grid reveal">
+    <div class="work-card">
+      <div class="work-card-bg bg-1">
+        <div class="card-geo card-geo-1"></div>
+        <div class="card-geo card-geo-2"></div>
+      </div>
+      <div class="work-card-content">
+        <div class="work-card-tag">Brand Identity — 2024</div>
+        <div class="work-card-title">Aurum Spirits</div>
+        <div class="work-card-sub">Complete brand identity and packaging design for a luxury distillery.</div>
+      </div>
+    </div>
+    <div class="work-card">
+      <div class="work-card-bg bg-2">
+        <div class="card-geo card-geo-alt"></div>
+      </div>
+      <div class="work-card-content">
+        <div class="work-card-tag">Digital Experience — 2024</div>
+        <div class="work-card-title">Meridian AI</div>
+        <div class="work-card-sub">Web platform & design system.</div>
+      </div>
+    </div>
+    <div class="work-card">
+      <div class="work-card-bg bg-3">
+        <div class="card-geo card-geo-1"></div>
+      </div>
+      <div class="work-card-content">
+        <div class="work-card-tag">Art Direction — 2023</div>
+        <div class="work-card-title">Nova Collective</div>
+        <div class="work-card-sub">Editorial campaign and visual identity.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="about-visual reveal">
+    <div class="about-line-deco"></div>
+    <div class="about-img-frame">
+      <div class="about-img-inner">
+        <div class="about-monogram">V</div>
+      </div>
+    </div>
+    <div class="about-tag-float">Creative Studio</div>
+  </div>
+  <div class="about-content reveal">
+    <div class="section-label">About the Studio</div>
+    <h2 class="about-title">Craft-first.<br><em>Concept-driven.</em><br>Results-obsessed.</h2>
+    <p class="about-body">
+      We are a small, focused creative studio built for brands that refuse to be ordinary. <strong>Every project begins with a question</strong> — what makes you truly different? — and ends with work that answers it unmistakably.
+    </p>
+    <p class="about-body">
+      From startups redefining their category to established companies seeking a bold reinvention, we bring <strong>strategic clarity and aesthetic rigor</strong> to every engagement.
+    </p>
+    <div class="stats">
+      <div>
+        <div class="stat-num">120+</div>
+        <div class="stat-label">Projects delivered</div>
+      </div>
+      <div>
+        <div class="stat-num">6</div>
+        <div class="stat-label">Years in practice</div>
+      </div>
+      <div>
+        <div class="stat-num">98%</div>
+        <div class="stat-label">Client retention</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="services">
+  <div class="services-header reveal">
+    <h2 class="services-title">What we<br><em>do best</em></h2>
+    <p class="services-intro">
+      We offer a focused set of high-impact services — each designed to move the needle on how your brand is perceived and how it performs.
+    </p>
+  </div>
+  <div class="services-list reveal">
+    <div class="service-card">
+      <div class="service-num">01</div>
+      <div class="service-icon">◈</div>
+      <div class="service-name">Brand Identity</div>
+      <p class="service-desc">Logos, visual systems, typography, color, and brand guidelines that are built to last and scale across every touchpoint.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-num">02</div>
+      <div class="service-icon">⬡</div>
+      <div class="service-name">Digital Design</div>
+      <p class="service-desc">Websites, apps, and digital experiences crafted for both beauty and conversion — design that performs as well as it looks.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-num">03</div>
+      <div class="service-icon">△</div>
+      <div class="service-name">Creative Strategy</div>
+      <p class="service-desc">Positioning, narrative, and strategic frameworks that give your team a shared creative language and direction.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+  <div class="cta-eyebrow reveal">Ready when you are</div>
+  <h2 class="cta-title reveal">Let's build<br>something <em>great.</em></h2>
+  <a href="mailto:hello@vanta.studio" class="cta-btn reveal">
+    Begin the Conversation <span class="arrow">→</span>
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <div class="logo">VAN<span>T</span>A</div>
+    <p>A creative studio for brands<br>with something to say.</p>
+  </div>
+  <div class="footer-col">
+    <h4>Navigation</h4>
+    <ul>
+      <li><a href="#">Work</a></li>
+      <li><a href="#">Studio</a></li>
+      <li><a href="#">Services</a></li>
+      <li><a href="#">Journal</a></li>
+    </ul>
+  </div>
+  <div class="footer-col">
+    <h4>Contact</h4>
+    <ul>
+      <li><a href="#">hello@vanta.studio</a></li>
+      <li><a href="#">Instagram</a></li>
+      <li><a href="#">LinkedIn</a></li>
+      <li><a href="#">Dribbble</a></li>
+    </ul>
+  </div>
+</footer>
+<div class="footer-bottom">
+  <div class="footer-copy">© 2024 Vanta Studio. All rights reserved.</div>
+  <div class="footer-copy">New York, NY — Remote worldwide</div>
+</div>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  // Nav scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(r => obs.observe(r));
+</script>
+</body>
+</html>
